@@ -1,0 +1,110 @@
+{
+  "storageSpaces": [
+    { "id": "fridge", "name": "Fridge", "icon": "thermometer-snowflake" },
+    { "id": "freezer", "name": "Freezer", "icon": "snowflake" },
+    { "id": "pantry", "name": "Pantry", "icon": "warehouse" },
+    { "id": "counter", "name": "Counter", "icon": "layout-grid" }
+  ],
+  "foodItems": [
+    {
+      "id": "item-001",
+      "name": "Greek Yogurt",
+      "quantity": 2,
+      "unit": "cups",
+      "expirationDate": "2024-02-08",
+      "storageSpaceId": "fridge",
+      "status": "active",
+      "addedAt": "2024-02-01"
+    },
+    {
+      "id": "item-002",
+      "name": "Baby Spinach",
+      "quantity": 1,
+      "unit": "bag",
+      "expirationDate": "2024-02-09",
+      "storageSpaceId": "fridge",
+      "status": "active",
+      "addedAt": "2024-02-03"
+    },
+    {
+      "id": "item-003",
+      "name": "Chicken Breast",
+      "quantity": 1,
+      "unit": "lb",
+      "expirationDate": "2024-02-10",
+      "storageSpaceId": "fridge",
+      "status": "active",
+      "addedAt": "2024-02-05"
+    },
+    {
+      "id": "item-004",
+      "name": "Whole Milk",
+      "quantity": 1,
+      "unit": "gallon",
+      "expirationDate": "2024-02-14",
+      "storageSpaceId": "fridge",
+      "status": "active",
+      "addedAt": "2024-02-02"
+    },
+    {
+      "id": "item-005",
+      "name": "Eggs",
+      "quantity": 12,
+      "unit": "count",
+      "expirationDate": "2024-02-20",
+      "storageSpaceId": "fridge",
+      "status": "active",
+      "addedAt": "2024-02-01"
+    },
+    {
+      "id": "item-006",
+      "name": "Frozen Blueberries",
+      "quantity": 1,
+      "unit": "bag",
+      "expirationDate": "2024-08-15",
+      "storageSpaceId": "freezer",
+      "status": "active",
+      "addedAt": "2024-01-20"
+    },
+    {
+      "id": "item-007",
+      "name": "Frozen Pizza",
+      "quantity": 2,
+      "unit": "boxes",
+      "expirationDate": "2024-06-30",
+      "storageSpaceId": "freezer",
+      "status": "active",
+      "addedAt": "2024-02-04"
+    },
+    {
+      "id": "item-008",
+      "name": "Bananas",
+      "quantity": 4,
+      "unit": "pieces",
+      "expirationDate": "2024-02-11",
+      "storageSpaceId": "counter",
+      "status": "active",
+      "addedAt": "2024-02-06"
+    },
+    {
+      "id": "item-009",
+      "name": "Canned Black Beans",
+      "quantity": 3,
+      "unit": "cans",
+      "expirationDate": "2025-08-20",
+      "storageSpaceId": "pantry",
+      "status": "active",
+      "addedAt": "2024-01-15"
+    },
+    {
+      "id": "item-010",
+      "name": "Pasta",
+      "quantity": 2,
+      "unit": "boxes",
+      "expirationDate": "2025-03-10",
+      "storageSpaceId": "pantry",
+      "status": "active",
+      "addedAt": "2024-01-10"
+    }
+  ]
+}

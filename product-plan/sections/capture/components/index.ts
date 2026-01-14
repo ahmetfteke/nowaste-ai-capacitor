@@ -1,0 +1,1 @@
+export { CaptureMethod } from './CaptureMethod'

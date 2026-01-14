@@ -1,0 +1,64 @@
+{
+  "storageSpaces": [
+    { "id": "fridge", "name": "Fridge", "icon": "thermometer-snowflake" },
+    { "id": "freezer", "name": "Freezer", "icon": "snowflake" },
+    { "id": "pantry", "name": "Pantry", "icon": "warehouse" },
+    { "id": "counter", "name": "Counter", "icon": "layout-grid" }
+  ],
+  "extractedItems": [
+    {
+      "id": "ext-001",
+      "name": "Whole Milk",
+      "quantity": 1,
+      "unit": "gallon",
+      "expirationDate": "2024-02-18",
+      "storageSpaceId": "fridge",
+      "confidence": 0.95
+    },
+    {
+      "id": "ext-002",
+      "name": "Baby Spinach",
+      "quantity": 1,
+      "unit": "bag",
+      "expirationDate": "2024-02-12",
+      "storageSpaceId": "fridge",
+      "confidence": 0.92
+    },
+    {
+      "id": "ext-003",
+      "name": "Chicken Breast",
+      "quantity": 2,
+      "unit": "lbs",
+      "expirationDate": "2024-02-10",
+      "storageSpaceId": "fridge",
+      "confidence": 0.88
+    },
+    {
+      "id": "ext-004",
+      "name": "Frozen Pizza",
+      "quantity": 2,
+      "unit": "box",
+      "expirationDate": "2024-06-15",
+      "storageSpaceId": "freezer",
+      "confidence": 0.97
+    },
+    {
+      "id": "ext-005",
+      "name": "Bananas",
+      "quantity": 6,
+      "unit": "pieces",
+      "expirationDate": "2024-02-14",
+      "storageSpaceId": "counter",
+      "confidence": 0.99
+    },
+    {
+      "id": "ext-006",
+      "name": "Canned Black Beans",
+      "quantity": 3,
+      "unit": "cans",
+      "expirationDate": "2025-08-20",
+      "storageSpaceId": "pantry",
+      "confidence": 0.94
+    }
+  ]
+}

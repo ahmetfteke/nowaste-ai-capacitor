@@ -1,0 +1,81 @@
+{
+  "notificationSettings": {
+    "enabled": true,
+    "reminderDays": [1, 3]
+  },
+  "alerts": [
+    {
+      "id": "alert-001",
+      "foodItemId": "item-001",
+      "foodItemName": "Greek Yogurt",
+      "message": "Expires today! Use it before it goes bad.",
+      "expirationDate": "2024-02-07",
+      "status": "unread",
+      "sentAt": "2024-02-07T08:00:00Z"
+    },
+    {
+      "id": "alert-002",
+      "foodItemId": "item-002",
+      "foodItemName": "Baby Spinach",
+      "message": "Expiring tomorrow. Time to make a salad!",
+      "expirationDate": "2024-02-08",
+      "status": "unread",
+      "sentAt": "2024-02-07T08:00:00Z"
+    },
+    {
+      "id": "alert-003",
+      "foodItemId": "item-003",
+      "foodItemName": "Chicken Breast",
+      "message": "Expires in 3 days. Plan a meal soon.",
+      "expirationDate": "2024-02-10",
+      "status": "read",
+      "sentAt": "2024-02-07T08:00:00Z"
+    },
+    {
+      "id": "alert-004",
+      "foodItemId": "item-004",
+      "foodItemName": "Whole Milk",
+      "message": "Expires in 3 days. Don't forget to use it!",
+      "expirationDate": "2024-02-09",
+      "status": "snoozed",
+      "snoozedUntil": "2024-02-08T08:00:00Z",
+      "sentAt": "2024-02-06T08:00:00Z"
+    },
+    {
+      "id": "alert-005",
+      "foodItemId": "item-005",
+      "foodItemName": "Avocados",
+      "message": "Expired yesterday. Check if still good.",
+      "expirationDate": "2024-02-05",
+      "status": "read",
+      "sentAt": "2024-02-06T08:00:00Z"
+    },
+    {
+      "id": "alert-006",
+      "foodItemId": "item-006",
+      "foodItemName": "Ground Beef",
+      "message": "Expires tomorrow. Cook it tonight!",
+      "expirationDate": "2024-02-05",
+      "status": "dismissed",
+      "sentAt": "2024-02-04T08:00:00Z"
+    },
+    {
+      "id": "alert-007",
+      "foodItemId": "item-007",
+      "foodItemName": "Fresh Strawberries",
+      "message": "Expiring soon. Perfect for smoothies!",
+      "expirationDate": "2024-02-03",
+      "status": "read",
+      "sentAt": "2024-02-02T08:00:00Z"
+    },
+    {
+      "id": "alert-008",
+      "foodItemId": "item-008",
+      "foodItemName": "Sliced Ham",
+      "message": "Expires in 3 days. Great for sandwiches.",
+      "expirationDate": "2024-02-01",
+      "status": "dismissed",
+      "sentAt": "2024-01-29T08:00:00Z"
+    }
+  ]
+}
