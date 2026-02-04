@@ -1,7 +1,10 @@
 {
   "name": "no-waste-ai",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "postinstall": "patch-package",
     "dev": "next dev",
