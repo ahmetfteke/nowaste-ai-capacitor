@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">No Waste AI</string>
+    <string name="title_activity_main">No Waste AI</string>
+    <string name="package_name">com.nowaste.ai</string>
+    <string name="custom_url_scheme">com.nowaste.ai</string>
+    <string name="default_web_client_id">961767578085-mbg3dejaq3dkv36pj5a9bnibecc43h2d.apps.googleusercontent.com</string>
+</resources>

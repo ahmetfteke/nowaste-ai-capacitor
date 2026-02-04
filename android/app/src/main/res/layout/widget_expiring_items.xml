@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="14dp"
+    android:background="@drawable/widget_background">
+
+    <!-- Header -->
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp">
+
+        <TextView
+            android:id="@+id/widget_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:text="Expiring Soon"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#1A3E38" />
+
+        <TextView
+            android:id="@+id/widget_count"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/widget_title"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="6dp"
+            android:text="0"
+            android:textSize="12sp"
+            android:textColor="#2D8A78"
+            android:background="@drawable/widget_badge_bg"
+            android:paddingStart="7dp"
+            android:paddingEnd="7dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp" />
+
+        <TextView
+            android:id="@+id/widget_add_button"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/widget_add_bg"
+            android:text="+"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center" />
+
+    </RelativeLayout>
+
+    <!-- Divider -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E8EEE9"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Item Row 1 -->
+    <LinearLayout
+        android:id="@+id/item_row_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/item_dot_1"
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            android:text="●"
+            android:textSize="8sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/item_name_1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:textSize="13sp"
+            android:textColor="#1A3E38"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/item_days_1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+    <!-- Item Row 2 -->
+    <LinearLayout
+        android:id="@+id/item_row_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/item_dot_2"
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            android:text="●"
+            android:textSize="8sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/item_name_2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:textSize="13sp"
+            android:textColor="#1A3E38"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/item_days_2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+    <!-- Item Row 3 -->
+    <LinearLayout
+        android:id="@+id/item_row_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/item_dot_3"
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            android:text="●"
+            android:textSize="8sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/item_name_3"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:textSize="13sp"
+            android:textColor="#1A3E38"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/item_days_3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+    <!-- Item Row 4 -->
+    <LinearLayout
+        android:id="@+id/item_row_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/item_dot_4"
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            android:text="●"
+            android:textSize="8sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/item_name_4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:textSize="13sp"
+            android:textColor="#1A3E38"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/item_days_4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+    <!-- Item Row 5 -->
+    <LinearLayout
+        android:id="@+id/item_row_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/item_dot_5"
+            android:layout_width="16dp"
+            android:layout_height="wrap_content"
+            android:text="●"
+            android:textSize="8sp"
+            android:gravity="center" />
+
+        <TextView
+            android:id="@+id/item_name_5"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="6dp"
+            android:textSize="13sp"
+            android:textColor="#1A3E38"
+            android:singleLine="true"
+            android:ellipsize="end" />
+
+        <TextView
+            android:id="@+id/item_days_5"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="2dp"
+            android:paddingBottom="2dp"
+            android:layout_marginStart="6dp" />
+
+    </LinearLayout>
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/widget_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:text="All fresh!"
+        android:textSize="13sp"
+        android:textColor="#8B8680"
+        android:gravity="center"
+        android:visibility="gone" />
+
+</LinearLayout>
