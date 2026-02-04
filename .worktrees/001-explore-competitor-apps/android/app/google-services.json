@@ -1,0 +1,130 @@
+{
+  "project_info": {
+    "project_number": "961767578085",
+    "project_id": "nowaste-ai",
+    "storage_bucket": "nowaste-ai.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:961767578085:android:f5b3973fe5100f13d3f70c",
+        "android_client_info": {
+          "package_name": "com.example.no_waste_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "961767578085-mbg3dejaq3dkv36pj5a9bnibecc43h2d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl1aPnWmyPilAWiphducJ1HPZvLr8zadM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "961767578085-mbg3dejaq3dkv36pj5a9bnibecc43h2d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "961767578085-01ugmooahdl4u9c7ju7mh7kb2a2k8mof.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplication1"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:961767578085:android:bd29806cb6408be5d3f70c",
+        "android_client_info": {
+          "package_name": "com.nowaste.ai"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "961767578085-a2bjdkl8c364fe9oelapund2ask475jm.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowaste.ai",
+            "certificate_hash": "191b05724333b0949208f16f03c5233f728d4de1"
+          }
+        },
+        {
+          "client_id": "961767578085-fo6m76k4mlj7bmqmdvr25d2f6otnrj61.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowaste.ai",
+            "certificate_hash": "ef22918bd67d1f8fb4df45beb20ba5718e7d428e"
+          }
+        },
+        {
+          "client_id": "961767578085-ggrkcud0lvd5ej7mpcccqgahi25snsm4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowaste.ai",
+            "certificate_hash": "018091dba34a40f612ce439f4a8bc21a21a4460f"
+          }
+        },
+        {
+          "client_id": "961767578085-gidsbpoi9rflv4e1ta9aq711rfds0353.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowaste.ai",
+            "certificate_hash": "7eec3041c9cdaf6b74cb7a417b498bc9d6518311"
+          }
+        },
+        {
+          "client_id": "961767578085-nm17k1iod66q6b4qp09oilpsqa1n7sk0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowaste.ai",
+            "certificate_hash": "aa6d55668fcbf31798943eedeafc9337116a63bf"
+          }
+        },
+        {
+          "client_id": "961767578085-tlk76rh8l0r2spdnt4t1215573vmr1cj.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.nowaste.ai",
+            "certificate_hash": "2ec6c7a2970a392ece49fddcfd442b8ad3916813"
+          }
+        },
+        {
+          "client_id": "961767578085-mbg3dejaq3dkv36pj5a9bnibecc43h2d.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAl1aPnWmyPilAWiphducJ1HPZvLr8zadM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "961767578085-mbg3dejaq3dkv36pj5a9bnibecc43h2d.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "961767578085-01ugmooahdl4u9c7ju7mh7kb2a2k8mof.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.flutterApplication1"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
