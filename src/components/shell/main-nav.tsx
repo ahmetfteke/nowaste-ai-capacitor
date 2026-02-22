@@ -6,7 +6,7 @@ import { Camera, Package, ChefHat, ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
-  { href: "/capture", label: "Capture", icon: Camera },
+  { href: "/capture", label: "Add", icon: Camera },
   { href: "/inventory", label: "Inventory", icon: Package },
   { href: "/shopping", label: "Shopping", icon: ShoppingCart },
   { href: "/recipes", label: "Recipes", icon: ChefHat },

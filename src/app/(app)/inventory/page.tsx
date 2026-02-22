@@ -34,6 +34,13 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -44,6 +51,10 @@ import { useStorageSpaces } from "@/hooks/use-storage-spaces";
 import { useShoppingList } from "@/hooks/use-shopping-list";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationPrompt } from "@/components/notification-prompt";
+import { IconPicker } from "@/components/icon-picker";
+import { matchIconByName } from "@/lib/food-icons";
+import { useSettings } from "@/hooks/use-settings";
+import { getUnitOptions } from "@/lib/units";
 import type { FoodItem } from "@/types";
 import { exportToCSV, exportToJSON } from "@/lib/export";
 import {
@@ -499,7 +510,7 @@ function FoodItemCard({
       </AnimatePresence>
 
       <div className="flex items-center justify-between gap-3">
-        <FoodIcon name={item.name} category={item.category} size={48} />
+        <FoodIcon name={item.iconHint || item.name} category={item.category} size={48} />
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-foreground truncate">{item.name}</h3>
           <p className="text-sm text-muted-foreground">
@@ -565,11 +576,14 @@ function EditItemDrawer({
 }) {
   const [formData, setFormData] = useState({
     name: "",
-    quantity: 1,
+    quantity: "1",
     unit: "",
     storageSpaceId: "",
     expirationDate: "",
+    iconHint: undefined as string | undefined,
   });
+  const { settings } = useSettings();
+  const units = getUnitOptions(settings.unitSystem, formData.unit);
   const [saving, setSaving] = useState(false);
 
   // Reset form when item changes
@@ -577,26 +591,28 @@ function EditItemDrawer({
   if (item && formData.name === "" && itemId) {
     setFormData({
       name: item.name,
-      quantity: item.quantity,
+      quantity: String(item.quantity),
       unit: item.unit,
       storageSpaceId: item.storageSpaceId,
       expirationDate: item.expirationDate.split("T")[0],
+      iconHint: item.iconHint,
     });
   }
 
   const handleSave = async () => {
-    if (!item || !formData.name.trim()) return;
+    if (!item || !formData.name.trim() || !formData.expirationDate) return;
 
     setSaving(true);
     try {
       await onSave(item.id, {
         name: formData.name.trim(),
-        quantity: formData.quantity,
+        quantity: parseFloat(formData.quantity) || 1,
         unit: formData.unit,
         storageSpaceId: formData.storageSpaceId,
         expirationDate: formData.expirationDate,
+        iconHint: formData.iconHint || matchIconByName(formData.name),
       });
-      setFormData({ name: "", quantity: 1, unit: "", storageSpaceId: "", expirationDate: "" });
+      setFormData({ name: "", quantity: "1", unit: "", storageSpaceId: "", expirationDate: "", iconHint: undefined });
       onClose();
     } catch (error) {
       console.error("Failed to update item:", error);
@@ -606,7 +622,7 @@ function EditItemDrawer({
   };
 
   const handleClose = () => {
-    setFormData({ name: "", quantity: 1, unit: "", storageSpaceId: "", expirationDate: "" });
+    setFormData({ name: "", quantity: "1", unit: "", storageSpaceId: "", expirationDate: "", iconHint: undefined });
     onClose();
   };
 
@@ -617,13 +633,30 @@ function EditItemDrawer({
           <DrawerTitle>Edit Item</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="edit-name">Name</Label>
-            <Input
-              id="edit-name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+          <div className="flex gap-3 items-end">
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <IconPicker
+                value={formData.iconHint}
+                onChange={(icon) => setFormData({ ...formData, iconHint: icon })}
+                itemName={formData.name}
+              />
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="edit-name">Name</Label>
+              <Input
+                id="edit-name"
+                value={formData.name}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setFormData({
+                    ...formData,
+                    name,
+                    iconHint: formData.iconHint || matchIconByName(name),
+                  });
+                }}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -631,22 +664,35 @@ function EditItemDrawer({
               <Label htmlFor="edit-quantity">Quantity</Label>
               <Input
                 id="edit-quantity"
-                type="number"
-                min="1"
+                inputMode="decimal"
                 value={formData.quantity}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })
+                  setFormData({ ...formData, quantity: e.target.value })
                 }
+                onBlur={() => {
+                  const n = parseFloat(formData.quantity);
+                  if (!formData.quantity.trim() || isNaN(n) || n <= 0) {
+                    setFormData({ ...formData, quantity: "1" });
+                  }
+                }}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-unit">Unit</Label>
-              <Input
-                id="edit-unit"
+              <Select
                 value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              />
+                onValueChange={(value) => setFormData({ ...formData, unit: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {units.map((u) => (
+                    <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -667,20 +713,24 @@ function EditItemDrawer({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="edit-expiration">Expiration Date</Label>
+            <Label htmlFor="edit-expiration">Expiration Date *</Label>
             <Input
               id="edit-expiration"
               type="date"
+              required
               value={formData.expirationDate}
               onChange={(e) => setFormData({ ...formData, expirationDate: e.target.value })}
             />
+            {!formData.expirationDate && (
+              <p className="text-xs text-destructive">Expiry date is required</p>
+            )}
           </div>
         </div>
         <DrawerFooter>
           <Button
             className="w-full"
             onClick={handleSave}
-            disabled={!formData.name.trim() || saving}
+            disabled={!formData.name.trim() || !formData.expirationDate || saving}
           >
             {saving ? "Saving..." : "Save Changes"}
           </Button>

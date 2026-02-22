@@ -282,6 +282,7 @@ export default function CapturePage() {
             expirationDate: item.expirationDate,
             storageSpaceId: item.storageSpaceId,
             category: item.category,
+            iconHint: item.iconHint,
           })
         )
       );

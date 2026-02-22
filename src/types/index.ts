@@ -31,6 +31,7 @@ export interface FoodItem {
   expirationDate: string;
   storageSpaceId: string;
   category?: FoodCategory;
+  iconHint?: string;
   status: "active" | "used";
   addedAt: string;
   userId: string;
@@ -80,6 +81,7 @@ export interface ShoppingListItem {
   quantity: number;
   unit: string;
   category?: FoodCategory;
+  iconHint?: string;
   checked: boolean;
   userId: string;
   createdAt: string;

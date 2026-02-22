@@ -21,6 +21,10 @@ import {
   DrawerTitle,
   DrawerFooter,
 } from "@/components/ui/drawer";
+import { IconPicker } from "@/components/icon-picker";
+import { matchIconByName } from "@/lib/food-icons";
+import { useSettings } from "@/hooks/use-settings";
+import { getUnitOptions } from "@/lib/units";
 import type { ExtractedItem } from "@/lib/ai";
 import type { FoodItem, StorageSpaceId } from "@/types";
 
@@ -86,6 +90,7 @@ export function ReviewItems({
         .split("T")[0],
       storageSpaceId: usedItem.storageSpaceId,
       category: usedItem.category,
+      iconHint: usedItem.iconHint,
       confidence: 1,
     };
     setItems((prev) => [...prev, newItem]);
@@ -239,7 +244,7 @@ export function ReviewItems({
       </div>
 
       {/* Fixed Bottom Actions */}
-      <div className="fixed bottom-20 left-0 right-0 p-4 bg-background border-t border-border">
+      <div className="fixed left-0 right-0 p-4 bg-background border-t border-border" style={{ bottom: "calc(4rem + env(safe-area-inset-bottom))" }}>
         <div className="max-w-md mx-auto space-y-3">
           {/* Missing expiry warning */}
           {itemsMissingExpiry.length > 0 && (
@@ -320,11 +325,15 @@ function EditItemDrawer({
   onSave: (item: ExtractedItem) => void;
   onClose: () => void;
 }) {
+  const { settings } = useSettings();
   const [formData, setFormData] = useState<ExtractedItem | null>(null);
+  const [quantityInput, setQuantityInput] = useState("");
+  const units = getUnitOptions(settings.unitSystem, formData?.unit);
 
   // Reset form when item changes
   if (item && (!formData || formData.id !== item.id)) {
     setFormData(item);
+    setQuantityInput(String(item.quantity));
   }
 
   if (!item || !formData) return null;
@@ -336,13 +345,30 @@ function EditItemDrawer({
           <DrawerTitle>Edit Item</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+          <div className="flex gap-3 items-end">
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <IconPicker
+                value={formData.iconHint}
+                onChange={(icon) => setFormData({ ...formData, iconHint: icon })}
+                itemName={formData.name}
+              />
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="name">Name</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setFormData({
+                    ...formData,
+                    name,
+                    iconHint: formData.iconHint || matchIconByName(name),
+                  });
+                }}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -350,22 +376,33 @@ function EditItemDrawer({
               <Label htmlFor="quantity">Quantity</Label>
               <Input
                 id="quantity"
-                type="number"
-                min="1"
-                value={formData.quantity}
+                inputMode="decimal"
+                value={quantityInput}
                 onFocus={(e) => e.target.select()}
-                onChange={(e) =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })
-                }
+                onChange={(e) => setQuantityInput(e.target.value)}
+                onBlur={() => {
+                  const n = parseFloat(quantityInput);
+                  if (!quantityInput.trim() || isNaN(n) || n <= 0) {
+                    setQuantityInput("1");
+                  }
+                }}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="unit">Unit</Label>
-              <Input
-                id="unit"
+              <Select
                 value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              />
+                onValueChange={(value) => setFormData({ ...formData, unit: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {units.map((u) => (
+                    <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
@@ -409,7 +446,7 @@ function EditItemDrawer({
         <DrawerFooter>
           <Button
             className="w-full"
-            onClick={() => onSave(formData)}
+            onClick={() => onSave({ ...formData, quantity: parseFloat(quantityInput) || 1 })}
             disabled={!formData.name.trim() || !formData.expirationDate}
           >
             Save
@@ -435,31 +472,39 @@ function AddItemDrawer({
   onAdd: (item: ExtractedItem) => void;
   onClose: () => void;
 }) {
+  const { settings } = useSettings();
   const [formData, setFormData] = useState({
     name: "",
-    quantity: 1,
-    unit: "count",
+    quantity: "1",
+    unit: "pcs",
     expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split("T")[0],
     storageSpaceId: storageSpaces[0]?.id || "",
+    iconHint: undefined as string | undefined,
   });
+  const [nameTypedByUser, setNameTypedByUser] = useState(false);
+  const units = getUnitOptions(settings.unitSystem, formData.unit);
 
   const handleAdd = () => {
     onAdd({
       id: crypto.randomUUID(),
       ...formData,
+      quantity: parseFloat(formData.quantity) || 1,
       confidence: 1,
+      iconHint: formData.iconHint || matchIconByName(formData.name),
     });
     setFormData({
       name: "",
-      quantity: 1,
-      unit: "count",
+      quantity: "1",
+      unit: "pcs",
       expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
         .toISOString()
         .split("T")[0],
       storageSpaceId: storageSpaces[0]?.id || "",
+      iconHint: undefined,
     });
+    setNameTypedByUser(false);
   };
 
   return (
@@ -469,14 +514,33 @@ function AddItemDrawer({
           <DrawerTitle>Add Item</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="add-name">Name</Label>
-            <Input
-              id="add-name"
-              placeholder="e.g., Milk, Eggs, Bread"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            />
+          <div className="flex gap-3 items-end">
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <IconPicker
+                value={formData.iconHint}
+                onChange={(icon) => {
+                  const updates: typeof formData = { ...formData, iconHint: icon };
+                  if (!nameTypedByUser) {
+                    updates.name = icon.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+                  }
+                  setFormData(updates);
+                }}
+                itemName={formData.name}
+              />
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="add-name">Name</Label>
+              <Input
+                id="add-name"
+                placeholder="e.g., Milk, Eggs, Bread"
+                value={formData.name}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  setNameTypedByUser(true);
+                }}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -484,23 +548,35 @@ function AddItemDrawer({
               <Label htmlFor="add-quantity">Quantity</Label>
               <Input
                 id="add-quantity"
-                type="number"
-                min="1"
+                inputMode="decimal"
                 value={formData.quantity}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })
+                  setFormData({ ...formData, quantity: e.target.value })
                 }
+                onBlur={() => {
+                  const n = parseFloat(formData.quantity);
+                  if (!formData.quantity.trim() || isNaN(n) || n <= 0) {
+                    setFormData({ ...formData, quantity: "1" });
+                  }
+                }}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="add-unit">Unit</Label>
-              <Input
-                id="add-unit"
-                placeholder="count, lbs, oz"
+              <Select
                 value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              />
+                onValueChange={(value) => setFormData({ ...formData, unit: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {units.map((u) => (
+                    <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 

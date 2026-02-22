@@ -27,6 +27,13 @@ import {
   DrawerTitle,
   DrawerFooter,
 } from "@/components/ui/drawer";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useShoppingList } from "@/hooks/use-shopping-list";
 import {
   parseShoppingListCSV,
@@ -37,6 +44,10 @@ import {
   type ParsedShoppingItem,
   type ValidationError,
 } from "@/lib/import";
+import { IconPicker } from "@/components/icon-picker";
+import { matchIconByName } from "@/lib/food-icons";
+import { useSettings } from "@/hooks/use-settings";
+import { getUnitOptions } from "@/lib/units";
 import type { ShoppingListItem, FoodCategory } from "@/types";
 
 export default function ShoppingListPage() {
@@ -263,7 +274,7 @@ function ShoppingItemCard({
     <Card className={`p-4 ${checked ? "opacity-60" : ""}`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
-          <FoodIcon name={item.name} category={item.category} size={40} />
+          <FoodIcon name={item.iconHint || item.name} category={item.category} size={40} />
           <div className="flex-1 min-w-0">
             <h3 className={`font-medium text-foreground truncate ${checked ? "line-through" : ""}`}>
               {item.name}
@@ -310,12 +321,16 @@ function AddItemDrawer({
   onAdd: (data: Omit<ShoppingListItem, "id" | "userId" | "createdAt">) => Promise<void>;
   error?: string | null;
 }) {
+  const { settings } = useSettings();
   const [formData, setFormData] = useState({
     name: "",
-    quantity: 1,
+    quantity: "1",
     unit: "pcs",
+    iconHint: undefined as string | undefined,
   });
   const [saving, setSaving] = useState(false);
+  const [nameTypedByUser, setNameTypedByUser] = useState(false);
+  const units = getUnitOptions(settings.unitSystem, formData.unit);
 
   const handleAdd = async () => {
     if (!formData.name.trim()) return;
@@ -324,11 +339,13 @@ function AddItemDrawer({
     try {
       await onAdd({
         name: formData.name.trim(),
-        quantity: formData.quantity,
+        quantity: parseFloat(formData.quantity) || 1,
         unit: formData.unit,
         checked: false,
+        iconHint: formData.iconHint || matchIconByName(formData.name),
       });
-      setFormData({ name: "", quantity: 1, unit: "pcs" });
+      setFormData({ name: "", quantity: "1", unit: "pcs", iconHint: undefined });
+      setNameTypedByUser(false);
       onClose();
     } catch (error) {
       console.error("Failed to add item:", error);
@@ -344,15 +361,34 @@ function AddItemDrawer({
           <DrawerTitle>Add to Shopping List</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="add-name">Item Name</Label>
-            <Input
-              id="add-name"
-              placeholder="e.g., Milk, Eggs, Bread"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-            />
+          <div className="flex gap-3 items-end">
+            <div className="space-y-2">
+              <Label>Icon</Label>
+              <IconPicker
+                value={formData.iconHint}
+                onChange={(icon) => {
+                  const updates = { ...formData, iconHint: icon };
+                  if (!nameTypedByUser) {
+                    updates.name = icon.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+                  }
+                  setFormData(updates);
+                }}
+                itemName={formData.name}
+              />
+            </div>
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="add-name">Item Name</Label>
+              <Input
+                id="add-name"
+                placeholder="e.g., Milk, Eggs, Bread"
+                value={formData.name}
+                onChange={(e) => {
+                  setFormData({ ...formData, name: e.target.value });
+                  setNameTypedByUser(true);
+                }}
+                onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -360,23 +396,35 @@ function AddItemDrawer({
               <Label htmlFor="add-quantity">Quantity</Label>
               <Input
                 id="add-quantity"
-                type="number"
-                min="1"
+                inputMode="decimal"
                 value={formData.quantity}
                 onFocus={(e) => e.target.select()}
                 onChange={(e) =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) || 1 })
+                  setFormData({ ...formData, quantity: e.target.value })
                 }
+                onBlur={() => {
+                  const n = parseFloat(formData.quantity);
+                  if (!formData.quantity.trim() || isNaN(n) || n <= 0) {
+                    setFormData({ ...formData, quantity: "1" });
+                  }
+                }}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="add-unit">Unit</Label>
-              <Input
-                id="add-unit"
-                placeholder="pcs, lb, oz"
+              <Select
                 value={formData.unit}
-                onChange={(e) => setFormData({ ...formData, unit: e.target.value })}
-              />
+                onValueChange={(value) => setFormData({ ...formData, unit: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  {units.map((u) => (
+                    <SelectItem key={u.value} value={u.value}>{u.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
