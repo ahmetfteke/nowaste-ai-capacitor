@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useHousehold } from "@/lib/household-context";
 import { useRouter } from "next/navigation";
 import { Settings, User, Bell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,7 @@ import { subscribeAlerts } from "@/lib/firestore";
 
 export function UserMenu() {
   const { user } = useAuth();
+  const { householdId } = useHousehold();
   const router = useRouter();
   const [imgError, setImgError] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -16,13 +18,16 @@ export function UserMenu() {
   useEffect(() => {
     if (!user) return;
 
-    const unsubscribe = subscribeAlerts(user.uid, (alerts) => {
+    const scopeId = householdId || user.uid;
+    const scopeField = householdId ? "householdId" as const : "userId" as const;
+
+    const unsubscribe = subscribeAlerts(scopeId, (alerts) => {
       const unread = alerts.filter((a) => a.status === "unread").length;
       setUnreadCount(unread);
-    });
+    }, scopeField);
 
     return unsubscribe;
-  }, [user]);
+  }, [user, householdId]);
 
   if (!user) return null;
 

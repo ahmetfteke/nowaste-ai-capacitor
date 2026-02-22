@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useHousehold } from "@/lib/household-context";
 import {
   subscribeRecipes,
   subscribeRecipeUsage,
@@ -19,6 +20,7 @@ const FREE_TIER_LIMIT = 10;
 
 export function useRecipes() {
   const { user } = useAuth();
+  const { householdId } = useHousehold();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [usageCount, setUsageCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -33,12 +35,15 @@ export function useRecipes() {
       return;
     }
 
+    const scopeId = householdId || user.uid;
+    const scopeField = householdId ? "householdId" as const : "userId" as const;
+
     setLoading(true);
 
-    const unsubRecipes = subscribeRecipes(user.uid, (items) => {
+    const unsubRecipes = subscribeRecipes(scopeId, (items) => {
       setRecipes(items);
       setLoading(false);
-    });
+    }, scopeField);
 
     const unsubUsage = subscribeRecipeUsage(user.uid, (count) => {
       setUsageCount(count);
@@ -48,7 +53,7 @@ export function useRecipes() {
       unsubRecipes();
       unsubUsage();
     };
-  }, [user]);
+  }, [user, householdId]);
 
   const generateRecipesFromInventory = async (
     inventory: FoodItem[],
@@ -93,7 +98,7 @@ export function useRecipes() {
 
       // Save recipes to Firestore
       for (const recipe of generatedRecipes) {
-        await createRecipe(user.uid, recipe);
+        await createRecipe(user.uid, recipe, householdId || undefined);
       }
 
       return generatedRecipes;

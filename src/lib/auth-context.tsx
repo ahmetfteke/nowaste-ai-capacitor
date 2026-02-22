@@ -18,7 +18,9 @@ import { createUserDocument, initializeDefaultStorageSpaces } from "./firestore"
 import { DEFAULT_STORAGE_SPACES } from "@/types";
 
 // Check if we're in a Capacitor native environment
-const isCapacitor = typeof window !== "undefined" && !!(window as any).Capacitor;
+const isCapacitor = typeof window !== "undefined"
+  && !!(window as any).Capacitor
+  && (window as any).Capacitor.isNativePlatform?.() === true;
 
 // Get browser timezone
 const getBrowserTimezone = (): string => {

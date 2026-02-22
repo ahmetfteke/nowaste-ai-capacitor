@@ -35,6 +35,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useShoppingList } from "@/hooks/use-shopping-list";
+import { useHousehold } from "@/lib/household-context";
 import {
   parseShoppingListCSV,
   parseShoppingListJSON,
@@ -61,6 +62,7 @@ export default function ShoppingListPage() {
     removeItem,
     clearChecked,
   } = useShoppingList();
+  const { canEdit } = useHousehold();
   const [searchQuery, setSearchQuery] = useState("");
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [showImportDrawer, setShowImportDrawer] = useState(false);
@@ -120,16 +122,18 @@ export default function ShoppingListPage() {
         <p className="text-muted-foreground max-w-sm mb-6">
           Add items you need to buy at the grocery store.
         </p>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setShowImportDrawer(true)}>
-            <Upload className="w-4 h-4 mr-2" />
-            Import
-          </Button>
-          <Button onClick={() => setShowAddDialog(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Add Item
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowImportDrawer(true)}>
+              <Upload className="w-4 h-4 mr-2" />
+              Import
+            </Button>
+            <Button onClick={() => setShowAddDialog(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Item
+            </Button>
+          </div>
+        )}
 
         <AddItemDrawer
           open={showAddDialog}
@@ -162,17 +166,21 @@ export default function ShoppingListPage() {
                 className="pl-9"
               />
             </div>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setShowImportDrawer(true)}
-              title="Import from file"
-            >
-              <Upload className="w-4 h-4" />
-            </Button>
-            <Button size="icon" onClick={() => setShowAddDialog(true)}>
-              <Plus className="w-4 h-4" />
-            </Button>
+            {canEdit && (
+              <>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setShowImportDrawer(true)}
+                  title="Import from file"
+                >
+                  <Upload className="w-4 h-4" />
+                </Button>
+                <Button size="icon" onClick={() => setShowAddDialog(true)}>
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Summary badges */}
@@ -181,8 +189,12 @@ export default function ShoppingListPage() {
               {uncheckedItems.length} to buy
             </Badge>
             {checkedItems.length > 0 && (
-              <Badge variant="secondary" className="cursor-pointer" onClick={clearChecked}>
-                {checkedItems.length} done · Clear
+              <Badge
+                variant="secondary"
+                className={canEdit ? "cursor-pointer" : ""}
+                onClick={canEdit ? clearChecked : undefined}
+              >
+                {checkedItems.length} done{canEdit ? " · Clear" : ""}
               </Badge>
             )}
           </div>
@@ -205,6 +217,7 @@ export default function ShoppingListPage() {
                     item={item}
                     onToggle={() => toggleChecked(item.id, true)}
                     onDelete={() => removeItem(item.id)}
+                    canEdit={canEdit}
                   />
                 ))}
               </div>
@@ -225,6 +238,7 @@ export default function ShoppingListPage() {
                     checked
                     onToggle={() => toggleChecked(item.id, false)}
                     onDelete={() => removeItem(item.id)}
+                    canEdit={canEdit}
                   />
                 ))}
               </div>
@@ -264,11 +278,13 @@ function ShoppingItemCard({
   checked = false,
   onToggle,
   onDelete,
+  canEdit = true,
 }: {
   item: ShoppingListItem;
   checked?: boolean;
   onToggle: () => void;
   onDelete: () => void;
+  canEdit?: boolean;
 }) {
   return (
     <Card className={`p-4 ${checked ? "opacity-60" : ""}`}>
@@ -284,26 +300,28 @@ function ShoppingItemCard({
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`h-8 w-8 ${checked ? "text-muted-foreground" : "text-primary"}`}
-            onClick={onToggle}
-            title={checked ? "Uncheck" : "Mark as done"}
-          >
-            {checked ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive"
-            onClick={onDelete}
-            title="Delete"
-          >
-            <Trash2 className="w-4 h-4" />
-          </Button>
-        </div>
+        {canEdit && (
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={`h-8 w-8 ${checked ? "text-muted-foreground" : "text-primary"}`}
+              onClick={onToggle}
+              title={checked ? "Uncheck" : "Mark as done"}
+            >
+              {checked ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 text-destructive"
+              onClick={onDelete}
+              title="Delete"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </Card>
   );

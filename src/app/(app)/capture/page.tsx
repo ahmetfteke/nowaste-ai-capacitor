@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/use-notifications";
 import { useUsage } from "@/hooks/use-usage";
 import { useBarcode } from "@/hooks/use-barcode";
 import { extractFoodItems, lookupBarcode, barcodeProductToExtractedItem, type ExtractedItem } from "@/lib/ai";
+import { useHousehold } from "@/lib/household-context";
 import { ReviewItems } from "@/components/capture/review-items";
 import { VoiceCapture } from "@/components/capture/voice-capture";
 import { NotificationPrompt } from "@/components/notification-prompt";
@@ -78,6 +79,7 @@ export default function CapturePage() {
   const { shouldShowPrompt, requestPermission, declineNotifications } = useNotifications();
   const { canUseAiScan, canUseVoiceInput, canUseBarcodeScanner, canAddFoodItem, remainingAiScans, remainingVoiceMinutes, remainingBarcodeScans, incrementAiScans, incrementVoiceSeconds, incrementBarcodeScans, limits, isPremium } = useUsage();
   const { scanBarcode: scanBarcodeNative, isSupported: isBarcodeSupported, loading: barcodeLoading, error: barcodeError } = useBarcode();
+  const { canEdit } = useHousehold();
 
   const [state, setState] = useState<CaptureState>("select");
   const [extractedItems, setExtractedItems] = useState<ExtractedItem[]>([]);
@@ -317,6 +319,26 @@ export default function CapturePage() {
     setExtractedItems([]);
     setState("select");
   };
+
+  // Viewer guard - viewers cannot add items
+  if (!canEdit) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Camera className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground mb-2">
+          View Only
+        </h2>
+        <p className="text-muted-foreground max-w-sm mb-6">
+          You have view-only access to this household. Ask the owner to change your role to add items.
+        </p>
+        <Button variant="outline" onClick={() => router.push("/inventory")}>
+          Back to Inventory
+        </Button>
+      </div>
+    );
+  }
 
   // Notification prompt state
   if (state === "notification-prompt") {

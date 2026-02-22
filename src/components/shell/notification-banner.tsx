@@ -4,8 +4,10 @@ import { useState, useEffect } from "react";
 import { Bell, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Check if we're in a Capacitor environment
-const isCapacitor = typeof window !== "undefined" && !!(window as any).Capacitor;
+// Check if we're in a native Capacitor environment (not web)
+const isCapacitor = typeof window !== "undefined"
+  && !!(window as any).Capacitor
+  && (window as any).Capacitor.isNativePlatform?.() === true;
 
 export function NotificationBanner() {
   const [showBanner, setShowBanner] = useState(false);

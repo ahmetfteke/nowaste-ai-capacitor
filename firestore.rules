@@ -18,6 +18,45 @@ service cloud.firestore {
       return isAuthenticated() && request.resource.data.userId == request.auth.uid;
     }
 
+    // Household helper: check if user is a member of the household
+    function isHouseholdMember(householdId) {
+      return isAuthenticated()
+        && request.auth.uid in
+          get(/databases/$(database)/documents/households/$(householdId)).data.memberIds;
+    }
+
+    // Household helper: check if user can write (owner or member, not viewer)
+    function canWriteHousehold(householdId) {
+      let role = get(/databases/$(database)/documents/households/$(householdId)).data.roles[request.auth.uid];
+      return isAuthenticated() && (role == "owner" || role == "member");
+    }
+
+    // Dual-path read: user owns doc OR is household member
+    function canReadShared() {
+      return isAuthenticated()
+        && (resource.data.userId == request.auth.uid
+            || (resource.data.keys().hasAny(['householdId'])
+                && resource.data.householdId != null
+                && isHouseholdMember(resource.data.householdId)));
+    }
+
+    // Dual-path write on existing doc: user owns doc OR can write to household
+    function canWriteShared() {
+      return isAuthenticated()
+        && (resource.data.userId == request.auth.uid
+            || (resource.data.keys().hasAny(['householdId'])
+                && resource.data.householdId != null
+                && canWriteHousehold(resource.data.householdId)));
+    }
+
+    // Dual-path create: user creating own AND (no household OR can write to household)
+    function canCreateShared() {
+      return isCreatingOwn()
+        && (!request.resource.data.keys().hasAny(['householdId'])
+            || request.resource.data.householdId == null
+            || canWriteHousehold(request.resource.data.householdId));
+    }
+
     // Users collection
     match /users/{userId} {
       allow read: if isOwner(userId);
@@ -26,33 +65,46 @@ service cloud.firestore {
       allow delete: if isOwner(userId);
     }
 
+    // Households collection
+    match /households/{householdId} {
+      // Members can read their household
+      allow read: if isHouseholdMember(householdId);
+      // Authenticated users can create (they become owner)
+      allow create: if isAuthenticated()
+        && request.resource.data.ownerId == request.auth.uid;
+      // Members can update (role checks in Cloud Functions)
+      allow update: if isHouseholdMember(householdId);
+      // Only owner can delete, and only if sole member
+      allow delete: if isAuthenticated()
+        && resource.data.ownerId == request.auth.uid
+        && resource.data.memberIds.size() == 1;
+    }
+
     // Storage Spaces collection
     match /storageSpaces/{spaceId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isCreatingOwn();
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if canReadShared();
+      allow create: if canCreateShared();
+      allow update: if canWriteShared();
+      allow delete: if canWriteShared();
     }
 
     // Food Items collection
-    // Max 1000 items per user (enforced via foodItemCount on user document)
     match /foodItems/{itemId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isCreatingOwn()
-        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('foodItemCount', 0) < 1000);
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if canReadShared();
+      allow create: if canCreateShared();
+      allow update: if canWriteShared();
+      allow delete: if canWriteShared();
     }
 
     // Alerts collection
     match /alerts/{alertId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isCreatingOwn();
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if canReadShared();
+      allow create: if canCreateShared();
+      allow update: if canWriteShared();
+      allow delete: if canWriteShared();
     }
 
-    // Notification Settings collection
+    // Notification Settings collection (personal, not shared)
     match /notificationSettings/{settingId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isCreatingOwn();
@@ -60,7 +112,7 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // User Settings collection
+    // User Settings collection (personal, not shared)
     match /userSettings/{settingId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isCreatingOwn();
@@ -77,16 +129,14 @@ service cloud.firestore {
     }
 
     // Shopping List collection
-    // Max 1000 items per user (enforced via shoppingListItemCount on user document)
     match /shoppingList/{itemId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isCreatingOwn()
-        && (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('shoppingListItemCount', 0) < 1000);
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if canReadShared();
+      allow create: if canCreateShared();
+      allow update: if canWriteShared();
+      allow delete: if canWriteShared();
     }
 
-    // Usage tracking collection (for free tier limits)
+    // Usage tracking collection (for free tier limits, personal)
     match /usage/{userId} {
       allow read: if isOwner(userId);
       allow create: if isOwner(userId);
@@ -95,13 +145,13 @@ service cloud.firestore {
 
     // Recipes collection
     match /recipes/{recipeId} {
-      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isCreatingOwn();
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow read: if canReadShared();
+      allow create: if canCreateShared();
+      allow update: if canWriteShared();
+      allow delete: if canWriteShared();
     }
 
-    // Recipe Usage tracking (for monthly limits)
+    // Recipe Usage tracking (for monthly limits, personal)
     match /recipeUsage/{usageId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
       allow create: if isCreatingOwn();

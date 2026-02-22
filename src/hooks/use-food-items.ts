@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useHousehold } from "@/lib/household-context";
 import {
   subscribeFoodItems,
   subscribeUsedFoodItems,
@@ -15,6 +16,7 @@ import { updateWidgetData } from "@/lib/widget-bridge";
 
 export function useFoodItems() {
   const { user } = useAuth();
+  const { householdId } = useHousehold();
   const [items, setItems] = useState<FoodItem[]>([]);
   const [usedItems, setUsedItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,18 +30,22 @@ export function useFoodItems() {
       return;
     }
 
+    // Use householdId for shared scope, fallback to userId during migration
+    const scopeId = householdId || user.uid;
+    const scopeField = householdId ? "householdId" as const : "userId" as const;
+
     setLoading(true);
-    const unsubActive = subscribeFoodItems(user.uid, (foodItems) => {
+    const unsubActive = subscribeFoodItems(scopeId, (foodItems) => {
       setItems(foodItems);
       setLoading(false);
-    });
-    const unsubUsed = subscribeUsedFoodItems(user.uid, setUsedItems);
+    }, scopeField);
+    const unsubUsed = subscribeUsedFoodItems(scopeId, setUsedItems, scopeField);
 
     return () => {
       unsubActive();
       unsubUsed();
     };
-  }, [user]);
+  }, [user, householdId]);
 
   // Sync widget data when items change
   useEffect(() => {
@@ -53,7 +59,7 @@ export function useFoodItems() {
   ) => {
     if (!user) throw new Error("Not authenticated");
     try {
-      await createFoodItem(user.uid, { ...data, status: "active" });
+      await createFoodItem(user.uid, { ...data, status: "active" }, householdId || undefined);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to add item"));
       throw err;
@@ -75,7 +81,7 @@ export function useFoodItems() {
   const removeItem = async (id: string) => {
     if (!user) throw new Error("Not authenticated");
     try {
-      await deleteFoodItem(id, user.uid);
+      await deleteFoodItem(id, user.uid, householdId || undefined);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to delete item"));
       throw err;

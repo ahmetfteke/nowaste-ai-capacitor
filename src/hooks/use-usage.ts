@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useHousehold } from "@/lib/household-context";
 import { usePurchases } from "@/hooks/use-purchases";
 import { doc, getDoc, setDoc, updateDoc, increment, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -33,12 +34,13 @@ interface UsageData {
 
 export function useUsage() {
   const { user } = useAuth();
+  const { householdId, household } = useHousehold();
   const { isPremium: isPremiumFromRevenueCat } = usePurchases();
   const [isPremiumFromFirestore, setIsPremiumFromFirestore] = useState(false);
 
-  // Use premium status from either source (RevenueCat SDK or Firestore)
-  // This ensures premium works even if RevenueCat SDK hasn't synced yet
-  const isPremium = isPremiumFromRevenueCat || isPremiumFromFirestore;
+  // Use premium status from either source:
+  // RevenueCat SDK, Firestore user doc, or household hasPremiumMember flag
+  const isPremium = isPremiumFromRevenueCat || isPremiumFromFirestore || (household?.hasPremiumMember === true);
   const [usage, setUsage] = useState<UsageData>({
     aiScansThisMonth: 0,
     voiceSecondsThisMonth: 0,

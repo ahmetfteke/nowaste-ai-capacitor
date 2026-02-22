@@ -2,11 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useHousehold } from "@/lib/household-context";
 import { subscribeAlerts, updateAlert } from "@/lib/firestore";
 import type { Alert } from "@/types";
 
 export function useAlerts() {
   const { user } = useAuth();
+  const { householdId } = useHousehold();
   const [alerts, setAlerts] = useState<Alert[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -18,14 +20,17 @@ export function useAlerts() {
       return;
     }
 
+    const scopeId = householdId || user.uid;
+    const scopeField = householdId ? "householdId" as const : "userId" as const;
+
     setLoading(true);
-    const unsubscribe = subscribeAlerts(user.uid, (fetchedAlerts) => {
+    const unsubscribe = subscribeAlerts(scopeId, (fetchedAlerts) => {
       setAlerts(fetchedAlerts);
       setLoading(false);
-    });
+    }, scopeField);
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, householdId]);
 
   const markRead = async (id: string) => {
     try {

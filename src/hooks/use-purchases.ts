@@ -7,7 +7,9 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // Check if we're in a Capacitor native environment
-const isCapacitor = typeof window !== "undefined" && !!(window as any).Capacitor;
+const isCapacitor = typeof window !== "undefined"
+  && !!(window as any).Capacitor
+  && (window as any).Capacitor.isNativePlatform?.() === true;
 
 // RevenueCat API key
 const REVENUECAT_API_KEY = process.env.NEXT_PUBLIC_REVENUECAT_API_KEY || "goog_BOapXtalXcObQqhoTKVRZzhlgUT";

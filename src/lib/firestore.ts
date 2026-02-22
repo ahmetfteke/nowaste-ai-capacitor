@@ -42,6 +42,7 @@ export const shoppingListCollection = collection(db, "shoppingList");
 export const recipesCollection = collection(db, "recipes");
 export const recipeUsageCollection = collection(db, "recipeUsage");
 export const suggestionsCollection = collection(db, "suggestions");
+export const householdsCollection = collection(db, "households");
 
 // =============================================================================
 // Users
@@ -55,6 +56,7 @@ export interface UserDocument {
   unitSystem: "metric" | "imperial";
   foodItemCount: number;
   shoppingListItemCount: number;
+  householdId?: string;
   recipePreferences?: RecipePreferences;
   // Notification settings
   fcmToken?: string;
@@ -124,8 +126,11 @@ export async function createStorageSpace(
   return docRef.id;
 }
 
-export async function getStorageSpaces(userId: string): Promise<StorageSpace[]> {
-  const q = query(storageSpacesCollection, where("userId", "==", userId));
+export async function getStorageSpaces(userId: string, householdId?: string): Promise<StorageSpace[]> {
+  // Query by householdId if available, fallback to userId for migration
+  const filterField = householdId ? "householdId" : "userId";
+  const filterValue = householdId || userId;
+  const q = query(storageSpacesCollection, where(filterField, "==", filterValue));
   const snapshot = await getDocs(q);
   return snapshot.docs.map((doc) => ({
     id: doc.id,
@@ -157,7 +162,8 @@ export async function initializeDefaultStorageSpaces(
 
 export async function createFoodItem(
   userId: string,
-  data: Omit<FoodItem, "id" | "userId" | "addedAt">
+  data: Omit<FoodItem, "id" | "userId" | "addedAt">,
+  householdId?: string
 ): Promise<string> {
   // Filter out undefined values - Firestore doesn't accept them
   const cleanData = Object.fromEntries(
@@ -165,17 +171,26 @@ export async function createFoodItem(
   );
 
   const newDocRef = doc(foodItemsCollection);
-  const userRef = doc(usersCollection, userId);
 
   const batch = writeBatch(db);
   batch.set(newDocRef, {
     ...cleanData,
     userId,
+    ...(householdId && { householdId }),
     addedAt: serverTimestamp(),
   });
-  batch.update(userRef, {
-    foodItemCount: increment(1),
-  });
+
+  // Increment counter on household doc if available, otherwise user doc
+  if (householdId) {
+    batch.update(doc(householdsCollection, householdId), {
+      foodItemCount: increment(1),
+    });
+  } else {
+    batch.update(doc(usersCollection, userId), {
+      foodItemCount: increment(1),
+    });
+  }
+
   // Don't await — commit writes to local cache immediately,
   // promise only resolves when server confirms (hangs offline)
   batch.commit();
@@ -199,15 +214,21 @@ export async function updateFoodItem(
   });
 }
 
-export async function deleteFoodItem(id: string, userId: string): Promise<void> {
+export async function deleteFoodItem(id: string, userId: string, householdId?: string): Promise<void> {
   const docRef = doc(foodItemsCollection, id);
-  const userRef = doc(usersCollection, userId);
 
   const batch = writeBatch(db);
   batch.delete(docRef);
-  batch.update(userRef, {
-    foodItemCount: increment(-1),
-  });
+
+  if (householdId) {
+    batch.update(doc(householdsCollection, householdId), {
+      foodItemCount: increment(-1),
+    });
+  } else {
+    batch.update(doc(usersCollection, userId), {
+      foodItemCount: increment(-1),
+    });
+  }
   batch.commit();
 }
 
@@ -234,12 +255,13 @@ export async function getFoodItems(userId: string): Promise<FoodItem[]> {
 }
 
 export function subscribeFoodItems(
-  userId: string,
-  callback: (items: FoodItem[]) => void
+  scopeId: string,
+  callback: (items: FoodItem[]) => void,
+  scopeField: "householdId" | "userId" = "householdId"
 ): () => void {
   const q = query(
     foodItemsCollection,
-    where("userId", "==", userId),
+    where(scopeField, "==", scopeId),
     where("status", "==", "active"),
     orderBy("expirationDate", "asc")
   );
@@ -254,16 +276,19 @@ export function subscribeFoodItems(
       };
     }) as FoodItem[];
     callback(items);
+  }, (error) => {
+    console.error(`[subscribeFoodItems] Permission error (${scopeField}=${scopeId}):`, error);
   });
 }
 
 export function subscribeUsedFoodItems(
-  userId: string,
-  callback: (items: FoodItem[]) => void
+  scopeId: string,
+  callback: (items: FoodItem[]) => void,
+  scopeField: "householdId" | "userId" = "householdId"
 ): () => void {
   const q = query(
     foodItemsCollection,
-    where("userId", "==", userId),
+    where(scopeField, "==", scopeId),
     where("status", "==", "used"),
     orderBy("expirationDate", "desc"),
     limit(50)
@@ -288,6 +313,8 @@ export function subscribeUsedFoodItems(
       }
     }
     callback(Array.from(seen.values()));
+  }, (error) => {
+    console.error(`[subscribeUsedFoodItems] Permission error (${scopeField}=${scopeId}):`, error);
   });
 }
 
@@ -333,12 +360,13 @@ export async function getAlerts(userId: string): Promise<Alert[]> {
 }
 
 export function subscribeAlerts(
-  userId: string,
-  callback: (alerts: Alert[]) => void
+  scopeId: string,
+  callback: (alerts: Alert[]) => void,
+  scopeField: "householdId" | "userId" = "householdId"
 ): () => void {
   const q = query(
     alertsCollection,
-    where("userId", "==", userId),
+    where(scopeField, "==", scopeId),
     orderBy("sentAt", "desc")
   );
 
@@ -352,6 +380,8 @@ export function subscribeAlerts(
       };
     }) as Alert[];
     callback(alerts);
+  }, (error) => {
+    console.error(`[subscribeAlerts] Permission error (${scopeField}=${scopeId}):`, error);
   });
 }
 
@@ -404,24 +434,32 @@ export async function saveFcmToken(
 
 export async function createShoppingListItem(
   userId: string,
-  data: Omit<ShoppingListItem, "id" | "userId" | "createdAt">
+  data: Omit<ShoppingListItem, "id" | "userId" | "createdAt">,
+  householdId?: string
 ): Promise<string> {
   const cleanData = Object.fromEntries(
     Object.entries(data).filter(([, value]) => value !== undefined)
   );
 
   const newDocRef = doc(shoppingListCollection);
-  const userRef = doc(usersCollection, userId);
 
   const batch = writeBatch(db);
   batch.set(newDocRef, {
     ...cleanData,
     userId,
+    ...(householdId && { householdId }),
     createdAt: serverTimestamp(),
   });
-  batch.update(userRef, {
-    shoppingListItemCount: increment(1),
-  });
+
+  if (householdId) {
+    batch.update(doc(householdsCollection, householdId), {
+      shoppingListItemCount: increment(1),
+    });
+  } else {
+    batch.update(doc(usersCollection, userId), {
+      shoppingListItemCount: increment(1),
+    });
+  }
   batch.commit();
 
   return newDocRef.id;
@@ -439,49 +477,64 @@ export async function updateShoppingListItem(
   updateDoc(docRef, cleanData);
 }
 
-export async function deleteShoppingListItem(id: string, userId: string): Promise<void> {
+export async function deleteShoppingListItem(id: string, userId: string, householdId?: string): Promise<void> {
   const docRef = doc(shoppingListCollection, id);
-  const userRef = doc(usersCollection, userId);
 
   const batch = writeBatch(db);
   batch.delete(docRef);
-  batch.update(userRef, {
-    shoppingListItemCount: increment(-1),
-  });
+
+  if (householdId) {
+    batch.update(doc(householdsCollection, householdId), {
+      shoppingListItemCount: increment(-1),
+    });
+  } else {
+    batch.update(doc(usersCollection, userId), {
+      shoppingListItemCount: increment(-1),
+    });
+  }
   batch.commit();
 }
 
-export async function clearCheckedShoppingListItems(userId: string): Promise<void> {
+export async function clearCheckedShoppingListItems(userId: string, householdId?: string): Promise<void> {
+  // Query by householdId if available for shared scope
+  const filterField = householdId ? "householdId" : "userId";
+  const filterValue = householdId || userId;
   const q = query(
     shoppingListCollection,
-    where("userId", "==", userId),
+    where(filterField, "==", filterValue),
     where("checked", "==", true)
   );
   const snapshot = await getDocs(q);
 
   if (snapshot.empty) return;
 
-  const userRef = doc(usersCollection, userId);
   const batch = writeBatch(db);
 
   snapshot.docs.forEach((docSnap) => {
     batch.delete(docSnap.ref);
   });
 
-  batch.update(userRef, {
-    shoppingListItemCount: increment(-snapshot.size),
-  });
+  if (householdId) {
+    batch.update(doc(householdsCollection, householdId), {
+      shoppingListItemCount: increment(-snapshot.size),
+    });
+  } else {
+    batch.update(doc(usersCollection, userId), {
+      shoppingListItemCount: increment(-snapshot.size),
+    });
+  }
 
   batch.commit();
 }
 
 export function subscribeShoppingListItems(
-  userId: string,
-  callback: (items: ShoppingListItem[]) => void
+  scopeId: string,
+  callback: (items: ShoppingListItem[]) => void,
+  scopeField: "householdId" | "userId" = "householdId"
 ): () => void {
   const q = query(
     shoppingListCollection,
-    where("userId", "==", userId),
+    where(scopeField, "==", scopeId),
     orderBy("createdAt", "desc")
   );
 
@@ -495,6 +548,8 @@ export function subscribeShoppingListItems(
       };
     }) as ShoppingListItem[];
     callback(items);
+  }, (error) => {
+    console.error(`[subscribeShoppingList] Permission error (${scopeField}=${scopeId}):`, error);
   });
 }
 
@@ -504,11 +559,13 @@ export function subscribeShoppingListItems(
 
 export async function createRecipe(
   userId: string,
-  data: Omit<Recipe, "id" | "userId" | "createdAt">
+  data: Omit<Recipe, "id" | "userId" | "createdAt">,
+  householdId?: string
 ): Promise<string> {
   const docRef = await addDoc(recipesCollection, {
     ...data,
     userId,
+    ...(householdId && { householdId }),
     createdAt: serverTimestamp(),
   });
   return docRef.id;
@@ -520,12 +577,13 @@ export async function deleteRecipe(id: string): Promise<void> {
 }
 
 export function subscribeRecipes(
-  userId: string,
-  callback: (recipes: Recipe[]) => void
+  scopeId: string,
+  callback: (recipes: Recipe[]) => void,
+  scopeField: "householdId" | "userId" = "householdId"
 ): () => void {
   const q = query(
     recipesCollection,
-    where("userId", "==", userId),
+    where(scopeField, "==", scopeId),
     orderBy("createdAt", "desc")
   );
 
@@ -539,6 +597,8 @@ export function subscribeRecipes(
       };
     }) as Recipe[];
     callback(recipes);
+  }, (error) => {
+    console.error(`[subscribeRecipes] Permission error (${scopeField}=${scopeId}):`, error);
   });
 }
 

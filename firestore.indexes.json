@@ -13,6 +13,15 @@
       "collectionGroup": "foodItems",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "householdId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "expirationDate", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "foodItems",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "expirationDate", "order": "ASCENDING" }
       ]
@@ -22,6 +31,15 @@
       "queryScope": "COLLECTION",
       "fields": [
         { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "expirationDate", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "foodItems",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "householdId", "order": "ASCENDING" },
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "expirationDate", "order": "DESCENDING" }
       ]
@@ -38,9 +56,49 @@
       "collectionGroup": "alerts",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "householdId", "order": "ASCENDING" },
+        { "fieldPath": "sentAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "alerts",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "foodItemId", "order": "ASCENDING" },
         { "fieldPath": "userId", "order": "ASCENDING" },
         { "fieldPath": "sentAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "shoppingList",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "householdId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "shoppingList",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recipes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "householdId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "recipes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "userId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {

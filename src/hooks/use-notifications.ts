@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "@/lib/auth-context";
 import { updateUserDocument, subscribeUserDocument } from "@/lib/firestore";
 
-// Check if we're in a Capacitor environment
-const isCapacitor = typeof window !== "undefined" && !!(window as any).Capacitor;
+// Check if we're in a native Capacitor environment (not web)
+const isCapacitor = typeof window !== "undefined"
+  && !!(window as any).Capacitor
+  && (window as any).Capacitor.isNativePlatform?.() === true;
 
 export function useNotifications() {
   const { user } = useAuth();

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
+import { useHousehold } from "@/lib/household-context";
 import {
   subscribeShoppingListItems,
   createShoppingListItem,
@@ -13,6 +14,7 @@ import type { ShoppingListItem } from "@/types";
 
 export function useShoppingList() {
   const { user } = useAuth();
+  const { householdId } = useHousehold();
   const [items, setItems] = useState<ShoppingListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -24,21 +26,24 @@ export function useShoppingList() {
       return;
     }
 
+    const scopeId = householdId || user.uid;
+    const scopeField = householdId ? "householdId" as const : "userId" as const;
+
     setLoading(true);
-    const unsubscribe = subscribeShoppingListItems(user.uid, (shoppingItems) => {
+    const unsubscribe = subscribeShoppingListItems(scopeId, (shoppingItems) => {
       setItems(shoppingItems);
       setLoading(false);
-    });
+    }, scopeField);
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, householdId]);
 
   const addItem = async (
     data: Omit<ShoppingListItem, "id" | "userId" | "createdAt">
   ) => {
     if (!user) throw new Error("Not authenticated");
     try {
-      await createShoppingListItem(user.uid, data);
+      await createShoppingListItem(user.uid, data, householdId || undefined);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to add item"));
       throw err;
@@ -69,7 +74,7 @@ export function useShoppingList() {
   const removeItem = async (id: string) => {
     if (!user) throw new Error("Not authenticated");
     try {
-      await deleteShoppingListItem(id, user.uid);
+      await deleteShoppingListItem(id, user.uid, householdId || undefined);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to delete item"));
       throw err;
@@ -79,7 +84,7 @@ export function useShoppingList() {
   const clearChecked = async () => {
     if (!user) throw new Error("Not authenticated");
     try {
-      await clearCheckedShoppingListItems(user.uid);
+      await clearCheckedShoppingListItems(user.uid, householdId || undefined);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to clear checked items"));
       throw err;

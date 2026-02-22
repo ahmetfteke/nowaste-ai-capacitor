@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { DM_Sans, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
+import { HouseholdProvider } from "@/lib/household-context";
 import { PWAElements } from "@/components/pwa-elements";
 
 const dmSans = DM_Sans({
@@ -35,8 +36,10 @@ export default function RootLayout({
         className={`${dmSans.variable} ${ibmPlexMono.variable} font-sans antialiased`}
       >
         <AuthProvider>
-          <PWAElements />
-          {children}
+          <HouseholdProvider>
+            <PWAElements />
+            {children}
+          </HouseholdProvider>
         </AuthProvider>
       </body>
     </html>

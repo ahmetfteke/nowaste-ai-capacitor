@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Scale, Bell, LogOut, Crown, ExternalLink } from "lucide-react";
+import { ChevronLeft, Scale, Bell, LogOut, Crown, ExternalLink, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,13 @@ import { useSettings } from "@/hooks/use-settings";
 import { useAuth } from "@/lib/auth-context";
 import { usePurchases } from "@/hooks/use-purchases";
 import { Paywall } from "@/components/paywall";
+import { HouseholdSection } from "@/components/household/household-section";
 import { Capacitor } from "@capacitor/core";
 
 // Check if we're in a Capacitor environment
-const isCapacitorEnv = typeof window !== "undefined" && !!(window as any).Capacitor;
+const isCapacitorEnv = typeof window !== "undefined"
+  && !!(window as any).Capacitor
+  && (window as any).Capacitor.isNativePlatform?.() === true;
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -171,6 +174,9 @@ export default function SettingsPage() {
               </div>
             </Card>
           </div>
+
+          {/* Household Section */}
+          <HouseholdSection />
 
           {/* Preferences Section */}
           <div>

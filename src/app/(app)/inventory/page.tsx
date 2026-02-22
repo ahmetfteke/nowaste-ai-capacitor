@@ -49,6 +49,7 @@ import {
 import { useFoodItems } from "@/hooks/use-food-items";
 import { useStorageSpaces } from "@/hooks/use-storage-spaces";
 import { useShoppingList } from "@/hooks/use-shopping-list";
+import { useHousehold } from "@/lib/household-context";
 import { useNotifications } from "@/hooks/use-notifications";
 import { NotificationPrompt } from "@/components/notification-prompt";
 import { IconPicker } from "@/components/icon-picker";
@@ -72,6 +73,7 @@ export default function InventoryPage() {
   const { items, loading, markUsed, removeItem, editItem, addItem } = useFoodItems();
   const { spaces } = useStorageSpaces();
   const { addItem: addToShoppingList } = useShoppingList();
+  const { canEdit } = useHousehold();
   const { shouldShowPrompt, requestPermission, declineNotifications } = useNotifications();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStorage, setSelectedStorage] = useState<string | null>(null);
@@ -304,6 +306,7 @@ export default function InventoryPage() {
               onDelete={removeItem}
               onAddToShoppingList={handleAddToShoppingList}
               onEdit={setEditingItem}
+              canEdit={canEdit}
             />
           )}
 
@@ -321,6 +324,7 @@ export default function InventoryPage() {
               onDelete={removeItem}
               onAddToShoppingList={handleAddToShoppingList}
               onEdit={setEditingItem}
+              canEdit={canEdit}
             />
           )}
 
@@ -338,6 +342,7 @@ export default function InventoryPage() {
               onDelete={removeItem}
               onAddToShoppingList={handleAddToShoppingList}
               onEdit={setEditingItem}
+              canEdit={canEdit}
             />
           )}
 
@@ -382,6 +387,7 @@ function ItemSection({
   onDelete,
   onAddToShoppingList,
   onEdit,
+  canEdit = true,
 }: {
   title: string;
   icon: React.ReactNode;
@@ -394,6 +400,7 @@ function ItemSection({
   onDelete: (id: string) => void;
   onAddToShoppingList: (item: FoodItem) => void;
   onEdit: (item: FoodItem) => void;
+  canEdit?: boolean;
 }) {
   const variantStyles = {
     expired: "text-destructive",
@@ -435,6 +442,7 @@ function ItemSection({
                 onDelete={() => onDelete(item.id)}
                 onAddToShoppingList={() => onAddToShoppingList(item)}
                 onEdit={() => onEdit(item)}
+                canEdit={canEdit}
               />
             </motion.div>
           ))}
@@ -455,6 +463,7 @@ function FoodItemCard({
   onDelete,
   onAddToShoppingList,
   onEdit,
+  canEdit = true,
 }: {
   item: FoodItem;
   variant: "expired" | "warning" | "fresh";
@@ -465,6 +474,7 @@ function FoodItemCard({
   onDelete: () => void;
   onAddToShoppingList: () => void;
   onEdit: () => void;
+  canEdit?: boolean;
 }) {
   const [showAddedFeedback, setShowAddedFeedback] = useState(false);
 
@@ -521,20 +531,22 @@ function FoodItemCard({
           </p>
         </div>
         <div className="flex items-center gap-1">
-          <motion.div
-            whileTap={{ scale: 0.85 }}
-            transition={{ type: "spring", stiffness: 400, damping: 17 }}
-          >
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-primary active:bg-primary/20"
-              onClick={onMarkUsed}
-              title="Mark as consumed"
+          {canEdit && (
+            <motion.div
+              whileTap={{ scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 400, damping: 17 }}
             >
-              <Utensils className="w-4 h-4" />
-            </Button>
-          </motion.div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-primary active:bg-primary/20"
+                onClick={onMarkUsed}
+                title="Mark as consumed"
+              >
+                <Utensils className="w-4 h-4" />
+              </Button>
+            </motion.div>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -542,18 +554,22 @@ function FoodItemCard({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil className="w-4 h-4 mr-2" />
-                Edit
-              </DropdownMenuItem>
+              {canEdit && (
+                <DropdownMenuItem onClick={onEdit}>
+                  <Pencil className="w-4 h-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem onClick={handleAddToShoppingList}>
                 <ShoppingCart className="w-4 h-4 mr-2" />
                 Add to Shopping List
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={onDelete} className="text-destructive">
-                <Trash2 className="w-4 h-4 mr-2" />
-                Delete
-              </DropdownMenuItem>
+              {canEdit && (
+                <DropdownMenuItem onClick={onDelete} className="text-destructive">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

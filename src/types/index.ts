@@ -1,4 +1,32 @@
 // =============================================================================
+// Household & Sharing
+// =============================================================================
+
+export type HouseholdRole = "owner" | "member" | "viewer";
+
+export interface HouseholdMember {
+  uid: string;
+  displayName: string;
+  email: string;
+  role: HouseholdRole;
+  joinedAt: string;
+}
+
+export interface Household {
+  id: string;
+  name: string;
+  ownerId: string;
+  memberIds: string[];
+  roles: Record<string, HouseholdRole>;
+  members: HouseholdMember[];
+  shareCode: string;
+  foodItemCount: number;
+  shoppingListItemCount: number;
+  createdAt: string;
+  hasPremiumMember?: boolean;
+}
+
+// =============================================================================
 // Core Entities
 // =============================================================================
 
@@ -7,6 +35,7 @@ export interface User {
   email: string;
   name: string;
   avatarUrl?: string;
+  householdId?: string;
   createdAt: string;
 }
 
@@ -15,6 +44,7 @@ export interface StorageSpace {
   name: string;
   icon: string;
   userId: string;
+  householdId?: string;
 }
 
 export type FoodCategory =
@@ -35,6 +65,7 @@ export interface FoodItem {
   status: "active" | "used";
   addedAt: string;
   userId: string;
+  householdId?: string;
 }
 
 export interface Capture {
@@ -67,6 +98,7 @@ export interface Alert {
   sentAt: string;
   snoozedUntil?: string;
   userId: string;
+  householdId?: string;
 }
 
 export interface NotificationSettings {
@@ -84,6 +116,7 @@ export interface ShoppingListItem {
   iconHint?: string;
   checked: boolean;
   userId: string;
+  householdId?: string;
   createdAt: string;
 }
 
@@ -143,6 +176,7 @@ export interface Recipe {
   tips?: string;
   usedInventoryItems: string[]; // names of items from inventory
   userId: string;
+  householdId?: string;
   createdAt: string;
 }
 
