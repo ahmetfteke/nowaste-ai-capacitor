@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth-context";
 import {
   subscribeFoodItems,
+  subscribeUsedFoodItems,
   createFoodItem,
   updateFoodItem,
   deleteFoodItem,
@@ -15,23 +16,29 @@ import { updateWidgetData } from "@/lib/widget-bridge";
 export function useFoodItems() {
   const { user } = useAuth();
   const [items, setItems] = useState<FoodItem[]>([]);
+  const [usedItems, setUsedItems] = useState<FoodItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
     if (!user) {
       setItems([]);
+      setUsedItems([]);
       setLoading(false);
       return;
     }
 
     setLoading(true);
-    const unsubscribe = subscribeFoodItems(user.uid, (foodItems) => {
+    const unsubActive = subscribeFoodItems(user.uid, (foodItems) => {
       setItems(foodItems);
       setLoading(false);
     });
+    const unsubUsed = subscribeUsedFoodItems(user.uid, setUsedItems);
 
-    return () => unsubscribe();
+    return () => {
+      unsubActive();
+      unsubUsed();
+    };
   }, [user]);
 
   // Sync widget data when items change
@@ -114,6 +121,7 @@ export function useFoodItems() {
 
   return {
     items,
+    usedItems,
     groupedItems,
     loading,
     error,

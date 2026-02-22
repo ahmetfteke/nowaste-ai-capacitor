@@ -73,7 +73,7 @@ export default function CapturePage() {
   const router = useRouter();
   const { takePhoto, pickFromGallery, loading: cameraLoading, error: cameraError } = useCamera();
   const { spaces, loading: spacesLoading } = useStorageSpaces();
-  const { items, addItem } = useFoodItems();
+  const { items, usedItems, addItem } = useFoodItems();
   const { settings } = useSettings();
   const { shouldShowPrompt, requestPermission, declineNotifications } = useNotifications();
   const { canUseAiScan, canUseVoiceInput, canUseBarcodeScanner, canAddFoodItem, remainingAiScans, remainingVoiceMinutes, remainingBarcodeScans, incrementAiScans, incrementVoiceSeconds, incrementBarcodeScans, limits, isPremium } = useUsage();
@@ -443,6 +443,7 @@ export default function CapturePage() {
           error={error}
           currentItemCount={items.length}
           maxItems={limits.foodItems}
+          usedItems={usedItems}
         />
         <Paywall open={showPaywall} onClose={() => setShowPaywall(false)} />
       </>

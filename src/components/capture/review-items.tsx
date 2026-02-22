@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Trash2, Edit2, Plus } from "lucide-react";
+import { Check, Trash2, Edit2, Plus, History } from "lucide-react";
 import { FoodIcon } from "@/components/food-icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ import {
   DrawerFooter,
 } from "@/components/ui/drawer";
 import type { ExtractedItem } from "@/lib/ai";
-import type { StorageSpaceId } from "@/types";
+import type { FoodItem, StorageSpaceId } from "@/types";
 
 interface StorageSpace {
   id: StorageSpaceId;
@@ -39,6 +39,7 @@ interface ReviewItemsProps {
   error?: string | null;
   currentItemCount?: number;
   maxItems?: number;
+  usedItems?: FoodItem[];
 }
 
 export function ReviewItems({
@@ -50,10 +51,12 @@ export function ReviewItems({
   error,
   currentItemCount = 0,
   maxItems = 1000,
+  usedItems = [],
 }: ReviewItemsProps) {
   const [items, setItems] = useState<ExtractedItem[]>(initialItems);
   const [editingItem, setEditingItem] = useState<ExtractedItem | null>(null);
   const [showAddDialog, setShowAddDialog] = useState(false);
+  const [showUsedItems, setShowUsedItems] = useState(true);
 
   const defaultStorageId = storageSpaces[0]?.id || "";
 
@@ -72,7 +75,33 @@ export function ReviewItems({
     setShowAddDialog(false);
   };
 
+  const addFromUsedItem = (usedItem: FoodItem) => {
+    const newItem: ExtractedItem = {
+      id: crypto.randomUUID(),
+      name: usedItem.name,
+      quantity: usedItem.quantity,
+      unit: usedItem.unit,
+      expirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      storageSpaceId: usedItem.storageSpaceId,
+      category: usedItem.category,
+      confidence: 1,
+    };
+    setItems((prev) => [...prev, newItem]);
+  };
+
+  // Filter out used items that are already in the review list
+  const availableUsedItems = usedItems.filter(
+    (used) => !items.some((item) => item.name.toLowerCase().trim() === used.name.toLowerCase().trim())
+  );
+
+  const itemsMissingExpiry = items.filter((item) => !item.expirationDate);
+
   const handleConfirm = () => {
+    // Prevent confirming if any items are missing expiration dates
+    if (itemsMissingExpiry.length > 0) return;
+
     // Assign default storage space to items without one
     const itemsWithStorage = items.map((item) => ({
       ...item,
@@ -114,9 +143,11 @@ export function ReviewItems({
                   <h3 className="font-medium text-foreground truncate mb-1">
                     {item.name}
                   </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {item.quantity} {item.unit} · Expires{" "}
-                    {new Date(item.expirationDate).toLocaleDateString()}
+                  <p className={`text-sm ${!item.expirationDate ? "text-destructive" : "text-muted-foreground"}`}>
+                    {item.quantity} {item.unit} ·{" "}
+                    {item.expirationDate
+                      ? `Expires ${new Date(item.expirationDate).toLocaleDateString()}`
+                      : "Expiry date required"}
                   </p>
                   {item.storageSpaceId && (
                     <p className="text-xs text-muted-foreground mt-1">
@@ -152,8 +183,51 @@ export function ReviewItems({
             </Card>
           ))}
 
+          {/* Previously Added suggestions */}
+          {availableUsedItems.length > 0 && (items.length === 0 || showUsedItems) && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <History className="w-3.5 h-3.5" />
+                  <span>Previously Added</span>
+                </div>
+                {items.length > 0 && (
+                  <button
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                    onClick={() => setShowUsedItems(false)}
+                  >
+                    Hide
+                  </button>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {availableUsedItems.map((usedItem) => (
+                  <button
+                    key={usedItem.id}
+                    onClick={() => addFromUsedItem(usedItem)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted hover:bg-muted/80 text-sm text-foreground transition-colors"
+                  >
+                    <Plus className="w-3 h-3 text-muted-foreground" />
+                    {usedItem.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Show toggle when hidden */}
+          {availableUsedItems.length > 0 && items.length > 0 && !showUsedItems && (
+            <button
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => setShowUsedItems(true)}
+            >
+              <History className="w-3 h-3" />
+              Show previously added items
+            </button>
+          )}
+
           {items.length === 0 && (
-            <div className="text-center py-12">
+            <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">No items to add</p>
               <Button variant="outline" onClick={() => setShowAddDialog(true)}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -167,6 +241,15 @@ export function ReviewItems({
       {/* Fixed Bottom Actions */}
       <div className="fixed bottom-20 left-0 right-0 p-4 bg-background border-t border-border">
         <div className="max-w-md mx-auto space-y-3">
+          {/* Missing expiry warning */}
+          {itemsMissingExpiry.length > 0 && (
+            <div className="bg-amber-500/10 text-amber-600 dark:text-amber-400 rounded-lg px-4 py-3">
+              <p className="text-sm">
+                {itemsMissingExpiry.length} item{itemsMissingExpiry.length !== 1 ? "s" : ""} missing expiry date. Tap to edit.
+              </p>
+            </div>
+          )}
+
           {/* Error message */}
           {error && (
             <div className="bg-destructive/10 text-destructive rounded-lg px-4 py-3">
@@ -188,7 +271,7 @@ export function ReviewItems({
             <Button
               className="flex-1"
               onClick={handleConfirm}
-              disabled={items.length === 0 || loading || currentItemCount + items.length > maxItems}
+              disabled={items.length === 0 || loading || currentItemCount + items.length > maxItems || itemsMissingExpiry.length > 0}
             >
               {loading ? (
                 "Adding..."
@@ -287,15 +370,19 @@ function EditItemDrawer({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="expiration">Expiration Date</Label>
+            <Label htmlFor="expiration">Expiration Date *</Label>
             <Input
               id="expiration"
               type="date"
+              required
               value={formData.expirationDate}
               onChange={(e) =>
                 setFormData({ ...formData, expirationDate: e.target.value })
               }
             />
+            {!formData.expirationDate && (
+              <p className="text-xs text-destructive">Expiry date is required</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -320,7 +407,11 @@ function EditItemDrawer({
           </div>
         </div>
         <DrawerFooter>
-          <Button className="w-full" onClick={() => onSave(formData)}>
+          <Button
+            className="w-full"
+            onClick={() => onSave(formData)}
+            disabled={!formData.name.trim() || !formData.expirationDate}
+          >
             Save
           </Button>
           <Button variant="outline" className="w-full" onClick={onClose}>

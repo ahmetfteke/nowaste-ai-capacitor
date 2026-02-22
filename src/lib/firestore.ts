@@ -10,6 +10,7 @@ import {
   query,
   where,
   orderBy,
+  limit,
   onSnapshot,
   serverTimestamp,
   writeBatch,
@@ -253,6 +254,40 @@ export function subscribeFoodItems(
       };
     }) as FoodItem[];
     callback(items);
+  });
+}
+
+export function subscribeUsedFoodItems(
+  userId: string,
+  callback: (items: FoodItem[]) => void
+): () => void {
+  const q = query(
+    foodItemsCollection,
+    where("userId", "==", userId),
+    where("status", "==", "used"),
+    orderBy("expirationDate", "desc"),
+    limit(50)
+  );
+
+  return onSnapshot(q, (snapshot) => {
+    const allItems = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        ...data,
+        addedAt: data.addedAt?.toDate?.()?.toISOString() || new Date().toISOString(),
+      };
+    }) as FoodItem[];
+
+    // Deduplicate by name (keep most recent per name)
+    const seen = new Map<string, FoodItem>();
+    for (const item of allItems) {
+      const key = item.name.toLowerCase().trim();
+      if (!seen.has(key)) {
+        seen.set(key, item);
+      }
+    }
+    callback(Array.from(seen.values()));
   });
 }
 
