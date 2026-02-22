@@ -949,23 +949,22 @@ const ALERT_WINDOWS = {
     evening: { start: 17, end: 21 }, // 5 PM - 9 PM
 };
 // Check if current time is within user's preferred alert window
-// @ts-ignore - temporarily unused during testing
-function isInAlertWindow(_timezone, _alertTime) {
-    if (_alertTime === 'off')
+function isInAlertWindow(timezone, alertTime) {
+    if (alertTime === 'off')
         return false;
-    const window = ALERT_WINDOWS[_alertTime];
-    if (!window)
+    const alertWindow = ALERT_WINDOWS[alertTime];
+    if (!alertWindow)
         return false;
     try {
         // Get current hour in user's timezone
         const now = new Date();
         const formatter = new Intl.DateTimeFormat('en-US', {
-            timeZone: _timezone,
+            timeZone: timezone,
             hour: 'numeric',
             hour12: false,
         });
         const localHour = parseInt(formatter.format(now), 10);
-        return localHour >= window.start && localHour < window.end;
+        return localHour >= alertWindow.start && localHour < alertWindow.end;
     }
     catch (_a) {
         // If timezone is invalid, default to allowing alerts
@@ -1027,11 +1026,10 @@ exports.generateExpirationAlerts = (0, scheduler_1.onSchedule)({
             // Skip if alerts are off or not in user's preferred time window
             if (userSettings.alertTime === 'off')
                 continue;
-            // TODO: Re-enable time window check after testing
-            // if (!isInAlertWindow(userSettings.timezone, userSettings.alertTime)) {
-            //   skippedWrongTime++;
-            //   continue;
-            // }
+            if (!isInAlertWindow(userSettings.timezone, userSettings.alertTime)) {
+                skippedWrongTime++;
+                continue;
+            }
             const expirationDate = new Date(item.expirationDate);
             expirationDate.setHours(0, 0, 0, 0);
             const daysUntilExpiration = Math.ceil((expirationDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));

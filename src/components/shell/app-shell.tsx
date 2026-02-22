@@ -37,7 +37,7 @@ export function AppShell({ children }: AppShellProps) {
   return (
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
-      <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-3 mt-3 bg-card border-b border-border safe-area-top">
+      <header className="sticky top-0 z-40 flex items-center justify-between px-4 py-3 bg-card border-b border-border safe-area-top">
         <h1 className="text-base font-semibold text-foreground">
           No Waste AI
         </h1>
